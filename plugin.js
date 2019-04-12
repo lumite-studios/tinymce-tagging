@@ -10,25 +10,53 @@ class Tagging
 		this.set_tags(options.tags);
 	}
 
+	calculate_position()
+	{
+		var top = 0;
+		var left = 0;
+
+		// add the position of the entire tinymce
+		// element to the top and left
+		top = top + this.editor.getElement().offsetTop;
+		left = left + this.editor.getElement().offsetLeft;
+
+		// also add the actual area of the inner
+		// tinymce area to our position
+		top = top + this.editor.getContentAreaContainer().offsetTop;
+		left = left + this.editor.getContentAreaContainer().offsetLeft;
+
+		// also use the current node to offset
+		// the position as well
+		top = top + this.editor.selection.getNode().offsetTop;
+		top = top + this.editor.selection.getNode().clientHeight;
+
+		if(this.editor.selection.getRng().getClientRects().length > 0)
+		{
+			left = left + this.editor.selection.getRng().getClientRects()[0].left;
+		} else
+		{
+			left = left + this.editor.selection.getNode().offsetLeft;
+		}
+
+		return { top: top, left: left };
+	}
+
 	clear()
 	{
-		document.body.removeChild(this.dropdown);
+		this.editor.getElement().parentElement.removeChild(this.dropdown);
 		delete this.dropdown;
 	}
 
 	highlighted_list_item()
 	{
-
 	}
 
 	highlight_next_list_item()
 	{
-
 	}
 
 	highlight_previous_list_item()
 	{
-		console.log(this.dropdown);
 	}
 
 	lookup(tag)
@@ -104,8 +132,11 @@ class Tagging
 
 	render_dropdown()
 	{
+		var position = this.calculate_position();
 		var ul = document.createElement('ul');
-		ul.setAttribute('id', 'tiny-tags');
+		ul.setAttribute('class', 'tiny-tags');
+		ul.style.top = position.top;
+		ul.style.left = position.left;
 		return ul;
 	}
 
@@ -138,7 +169,7 @@ class Tagging
 	show()
 	{
 		this.dropdown = this.render_dropdown();
-		document.body.appendChild(this.dropdown);
+		this.editor.getElement().parentElement.appendChild(this.dropdown);
 	}
 
 	track_tag(tag, e)

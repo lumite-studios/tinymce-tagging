@@ -2,6 +2,8 @@
 
 A plugin to allow the use of tagging and mentions for TinyMCE.
 
+Based on [https://github.com/StevenDevooght/tinyMCE-mention](https://github.com/StevenDevooght/tinyMCE-mention).
+
 ## Usage
 
 Use as an external plugin when initialising TinyMCE.

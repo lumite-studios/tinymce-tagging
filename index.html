@@ -4,21 +4,34 @@
 		<title>TinyMCE Tagging</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta charset="utf-8">
+
+		<style>
+			.tiny-tags {
+				background-color: #cccccc;
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+				position: absolute;
+				width: 200px;
+			}
+		</style>
 	</head>
 
 	<body>
-		<textarea id="tagging"></textarea>
+		<div style="position: relative">
+			<textarea id="tagging"></textarea>
+		</div>
 
 		<script src="https://cloud.tinymce.com/5/tinymce.min.js?apiKey=bty4go47f91h87qdjzgyt06pbzf5213ophspdimnyddovwf8"></script>
 		<script>
 			tinymce.init({
 				selector: "textarea#tagging",
                 external_plugins: {
-                    'tag': 'https://crotanite.github.io/tinymce-tagging/plugin.js',
+                    'tag': 'http://projects.local/tinymce-tagging/plugin.js',
                 },
                 tagging: {
-                	tags: {
-	                	users: {
+                	tags: [
+	                	{
 	                		delimeter: '@',
                 			selector: 'name',
 	                		source: [
@@ -29,18 +42,7 @@
 	                			{ name: 'Aditi Berry' }
 	                		],
 	                	},
-	                	hash: {
-	                		delimeter: '#',
-	                		selector: 'uid',
-	                		source: function(query, success)
-	                		{
-	                			fetch('/').then(res => res.json()).then(out =>
-                				{
-                					success(out.data);
-                				});
-	                		},
-	                	}
-	                },
+	                ],
                 },
 			});
 		</script>
