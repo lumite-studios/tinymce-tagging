@@ -1,0 +1,8 @@
+.tiny-tags {
+	background-color: #cccccc;
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	width: 200px;
+}
