@@ -1,0 +1,49 @@
+<!doctype>
+<html lang="en">
+	<head>
+		<title>TinyMCE Tagging</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta charset="utf-8">
+	</head>
+
+	<body>
+		<textarea id="mentions"></textarea>
+
+		<script src="https://cloud.tinymce.com/5/tinymce.min.js?apiKey=bty4go47f91h87qdjzgyt06pbzf5213ophspdimnyddovwf8"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+		<script>
+			tinymce.init({
+				selector: "textarea#mentions",
+                external_plugins: {
+                    'tag': '/plugin.js',
+                },
+                tagging: {
+                	tags: {
+	                	users: {
+	                		delimeter: '@',
+                			selector: 'name',
+	                		source: [
+	                			{ name: 'Claude Harper' },
+	                			{ name: 'Alannah Carter' },
+	                			{ name: 'Felix Schultz' },
+	                			{ name: 'Holli Keenan' },
+	                			{ name: 'Aditi Berry' }
+	                		],
+	                	},
+	                	hash: {
+	                		delimeter: '#',
+	                		selector: 'uid',
+	                		source: function(query, success)
+	                		{
+	                			fetch('/').then(res => res.json()).then(out =>
+                				{
+                					success(out.data);
+                				});
+	                		},
+	                	}
+	                },
+                },
+			});
+		</script>
+	</body>
+</html>
