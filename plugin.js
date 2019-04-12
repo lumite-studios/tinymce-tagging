@@ -38,6 +38,9 @@ class Tagging
 			left = left + this.editor.selection.getNode().offsetLeft;
 		}
 
+		//
+		top = top + 5;
+
 		return { top: top, left: left };
 	}
 

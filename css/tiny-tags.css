@@ -1,8 +1,36 @@
 .tiny-tags {
-	background-color: #cccccc;
+    background-color: #fff;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 6px;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+	display: block;
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
 	position: absolute;
 	width: 200px;
+	z-index: 1000;
+}
+
+.tiny-tags:before {
+    content: '';
+    display: inline-block;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid #ccc;
+    border-bottom-color: rgba(0, 0, 0, 0.2);
+    position: absolute;
+    top: -8px;
+    left: 9px;
+}
+
+.tiny-tags > .item {
+    display: block;
+    padding: 3px 20px;
+    clear: both;
+    font-weight: normal;
+    line-height: 20px;
+    color: #333;
+    white-space: nowrap;
+    text-decoration: none;
 }
