@@ -15,29 +15,29 @@ tinymce.init({
 	tagging: {
 		delay: 500,
 		tags: {
-        	users: {
-        		delimeter: '@',
-    			selector: 'name',
-        		source: [
-        			{ name: 'Claude Harper' },
-        			{ name: 'Alannah Carter' },
-        			{ name: 'Felix Schultz' },
-        			{ name: 'Holli Keenan' },
-        			{ name: 'Aditi Berry' }
-        		],
-        	},
-        	hash: {
-        		delimeter: '#',
-        		selector: 'uid',
-        		source: function(query, success)
-        		{
-        			fetch('/').then(res => res.json()).then(out =>
-    				{
-    					success(out.data);
-    				});
-        		},
-        	}
-        },
-    },
+			users: {
+				delimeter: '@',
+				selector: 'name',
+				source: [
+					{ name: 'Claude Harper' },
+					{ name: 'Alannah Carter' },
+					{ name: 'Felix Schultz' },
+					{ name: 'Holli Keenan' },
+					{ name: 'Aditi Berry' }
+				],
+			},
+			hash: {
+				delimeter: '#',
+				selector: 'uid',
+				source: function(query, success)
+				{
+					fetch('/').then(res => res.json()).then(out =>
+					{
+						success(out.data);
+					});
+				},
+			}
+		},
+	},
 })
 ```
