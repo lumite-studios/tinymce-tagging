@@ -46,10 +46,11 @@ class Tagging
 		return { top: top, left: left };
 	}
 
-	clear()
+	clear(tag)
 	{
 		this.editor.getElement().parentElement.removeChild(this.dropdown);
 		delete this.dropdown;
+		tag.tracking = '';
 	}
 
 	highlighted_list_item(tag)
@@ -59,11 +60,11 @@ class Tagging
 		{
 			var item = tag.items[tag.items.findIndex(function(item) { return item[tag.selector] === current_active.innerText })];
 			var content = this.editor.getContent();
-			content = content.replace(tag.tracking, tag.insert(item, tag))
+			content = content.replace(tag.tracking, tag.insert(item, tag) + '&nbsp;');
 			this.editor.setContent(content);
-			this.clear();
+			this.clear(tag);
             this.editor.focus();
-            this.editor.selection.select(this.editor.getBody(), true);
+            this.editor.selection.select(this.editor.getBody());
             this.editor.selection.collapse(false);
 		}
 	}
@@ -114,7 +115,7 @@ class Tagging
 
 	insert(item, tag)
 	{
-		return '<span data-tagging-id="' + item[tag.selector] + '">' + item[tag.selector] + '</span>&nbsp;';
+		return '<span data-tagging-id="' + item[tag.selector] + '">' + item[tag.selector] + '</span>';
 	}
 
 	lookup(tag)
@@ -238,7 +239,6 @@ class Tagging
 
 		if(tag.tracking === '')
 		{
-			this.clear();
 			return null;
 		}
 
