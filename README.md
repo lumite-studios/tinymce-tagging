@@ -14,29 +14,25 @@ tinymce.init({
 	external_plugins: {
 		'tag': 'https://crotanite.github.io/tinymce-tagging/plugin.js',
 	},
+	extended_valid_elements: 'span[class|id|data-mce-mentions-id]',
 	tagging: {
-		delay: 500,
-		tags: {
-			hash: {
-				delimeter: '#',
-				selector: 'hashtag',
+		tags: [
+			{
+				delimeter: '@',
+				insert: function(item, tag)
+				{
+					return '<span id="' + item.id + '">' + item.name + '</span>&nbsp;';
+				},
+				selector: 'name',
 				source: [
-					{ hashtag: 'general' },
-					{ hashtag: 'news' },
+					{ id: 1, name: 'Claude Harper' },
+					{ id: 1, name: 'Alannah Carter' },
+					{ id: 1, name: 'Felix Schultz' },
+					{ id: 1, name: 'Holli Keenan' },
+					{ id: 1, name: 'Aditi Berry' }
 				],
 			},
-			users: {
-				delimeter: '@',
-				selector: 'name',
-				source: function(query, success)
-				{
-					fetch('/').then(res => res.json()).then(out =>
-					{
-						success(out.data);
-					});
-				},
-			}
-		},
+		],
 	},
 })
 ```
