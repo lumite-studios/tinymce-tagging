@@ -4,8 +4,8 @@ class Tagging
 {
 	constructor(editor, options = {})
 	{
-		this.editor = editor;
 		this.delay = options.delay || 500;
+		this.editor = editor;
 		this.tags = {};
 		this.set_tags(options.tags);
 	}
@@ -38,7 +38,9 @@ class Tagging
 			left = left + this.editor.selection.getNode().offsetLeft;
 		}
 
-		//
+		// add a small additional offset to move
+		// the dropdown a little bit away from
+		// the inserted text
 		top = top + 5;
 
 		return { top: top, left: left };
@@ -50,16 +52,69 @@ class Tagging
 		delete this.dropdown;
 	}
 
-	highlighted_list_item()
+	highlighted_list_item(tag)
 	{
+		var current_active = this.dropdown.querySelector('li.active');
+		if(current_active)
+		{
+			var item = tag.items[tag.items.findIndex(function(item) { return item[tag.selector] === current_active.innerText })];
+			var content = this.editor.getContent();
+			content = content.replace(tag.tracking, tag.insert(item, tag))
+			this.editor.setContent(content);
+			this.clear();
+            this.editor.focus();
+            this.editor.selection.select(this.editor.getBody(), true);
+            this.editor.selection.collapse(false);
+		}
 	}
 
 	highlight_next_list_item()
 	{
+		var current_active = this.dropdown.querySelector('li.active');
+		if(current_active !== null)
+		{
+			var index = ([...this.dropdown.children].indexOf(current_active)) + 1;
+			var child = this.dropdown.childNodes[index];
+			if(child)
+			{
+				current_active.classList.remove('active');
+				this.dropdown.childNodes[index].classList.add('active');
+			}
+		} else
+		{
+			var child = this.dropdown.childNodes[0];
+			if(child)
+			{
+				this.dropdown.childNodes[0].classList.add('active');
+			}
+		}
 	}
 
 	highlight_previous_list_item()
 	{
+		var current_active = this.dropdown.querySelector('li.active');
+		if(current_active !== null)
+		{
+			var index = ([...this.dropdown.children].indexOf(current_active)) - 1;
+			var child = this.dropdown.childNodes[index];
+			if(child)
+			{
+				current_active.classList.remove('active');
+				this.dropdown.childNodes[index].classList.add('active');
+			}
+		} else
+		{
+			var child = this.dropdown.childNodes[0];
+			if(child)
+			{
+				this.dropdown.childNodes[0].classList.add('active');
+			}
+		}
+	}
+
+	insert(item, tag)
+	{
+		return '<span>' + item[tag.selector] + '</span>';
 	}
 
 	lookup(tag)
@@ -75,17 +130,18 @@ class Tagging
 		clearTimeout(this.searching);
 		this.searching = setTimeout(function()
 		{
-			tag.source instanceof Function ? tag.source(query, _self.search.bind(_self, tag.selector)) : _self.search(tag.selector, tag.source);
+			tag.source instanceof Function ? tag.source(query, _self.search.bind(_self, tag)) : _self.search(tag, tag.source);
 		}, this.delay);
 	}
 
-	on_keyup(tracking, e)
+	on_keyup(tag, e)
 	{
 		switch(e.keyCode)
 		{
 			// BACKSPACE
 			case 8:
-				return tracking.slice(0, -1);
+				tag.tracking = tag.tracking.slice(0, -1);
+				this.lookup(tag);
 				break;
 
 			// ENTER
@@ -93,9 +149,8 @@ class Tagging
 				e.preventDefault();
 				if(this.dropdown)
 				{
-					this.highlighted_list_item();
+					this.highlighted_list_item(tag);
 				}
-				return tracking;
 				break;
 
 			// UP ARROW
@@ -105,7 +160,6 @@ class Tagging
 				{
 					this.highlight_previous_list_item();
 				}
-				return tracking;
 				break;
 
 			// DOWN ARROW
@@ -115,12 +169,12 @@ class Tagging
 				{
 					this.highlight_next_list_item();
 				}
-				return tracking;
 				break;
 
 			// ANY OTHER
 			default:
-				return tracking + String.fromCharCode(e.keyCode);
+				tag.tracking = tag.tracking + String.fromCharCode(e.keyCode);
+				this.lookup(tag);
 				break;
 		}
 	}
@@ -143,17 +197,18 @@ class Tagging
 		return ul;
 	}
 
-	search(selector, items)
+	search(tag, items)
 	{
 		if(this.dropdown)
 		{
 			this.dropdown.innerHTML = '';
 			for(var i = 0; i < items.length; i++)
 			{
-				var elem = this.render(items[i], selector);
+				var elem = this.render(items[i], tag.selector);
 				this.dropdown.append(elem);
 			}
 		}
+		tag.items = items;
 	}
 
 	set_tags(options)
@@ -162,6 +217,8 @@ class Tagging
 		{
 			this.tags[item.delimeter] = {
 				delimeter: item.delimeter,
+				insert: item.insert || this.insert,
+				items: [],
 				selector: item.selector,
 				source: item.source,
 				tracking: '',
@@ -177,15 +234,13 @@ class Tagging
 
 	track_tag(tag, e)
 	{
-		tag.tracking = this.on_keyup(tag.tracking, e);
+		this.on_keyup(tag, e);
 
 		if(tag.tracking === '')
 		{
 			this.clear();
 			return null;
 		}
-
-		this.lookup(tag);
 
 		return tag;
 	}

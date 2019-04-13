@@ -16,24 +16,29 @@
 		<script>
 			tinymce.init({
 				selector: "textarea#tagging",
-                external_plugins: {
-                    'tag': 'http://projects.local/tinymce-tagging/plugin.js',
-                },
-                tagging: {
-                	tags: [
-	                	{
-	                		delimeter: '@',
-                			selector: 'name',
-	                		source: [
-	                			{ name: 'Claude Harper' },
-	                			{ name: 'Alannah Carter' },
-	                			{ name: 'Felix Schultz' },
-	                			{ name: 'Holli Keenan' },
-	                			{ name: 'Aditi Berry' }
-	                		],
-	                	},
-	                ],
-                },
+				extended_valid_elements: 'span[class|id|data-mce-mentions-id]',
+				external_plugins: {
+					'tag': 'http://projects.local/tinymce-tagging/plugin.js',
+				},
+				tagging: {
+					tags: [
+						{
+							delimeter: '@',
+							insert: function(item, tag)
+							{
+								return '<span class="test">Test</span>&nbsp;';
+							},
+							selector: 'name',
+							source: [
+								{ id: 1, name: 'Claude Harper' },
+								{ id: 1, name: 'Alannah Carter' },
+								{ id: 1, name: 'Felix Schultz' },
+								{ id: 1, name: 'Holli Keenan' },
+								{ id: 1, name: 'Aditi Berry' }
+							],
+						},
+					],
+				},
 			});
 		</script>
 	</body>
