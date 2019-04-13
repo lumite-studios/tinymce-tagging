@@ -14,7 +14,7 @@ tinymce.init({
 	external_plugins: {
 		'tag': 'https://crotanite.github.io/tinymce-tagging/plugin.js',
 	},
-	extended_valid_elements: 'span[class|id|data-mce-mentions-id]',
+	extended_valid_elements: 'span[class|id|data-tagging-id]',
 	tagging: {
 		tags: [
 			{
