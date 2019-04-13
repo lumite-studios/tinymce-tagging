@@ -60,7 +60,7 @@ class Tagging
 		{
 			var item = tag.items[tag.items.findIndex(function(item) { return item[tag.selector] === current_active.innerText })];
 			var content = this.editor.getContent();
-			content = content.replace(tag.tracking, tag.insert(item, tag) + '&nbsp;');
+			content = content.replace(tag.tracking, tag.insert(item, tag));
 			this.editor.setContent(content);
 			this.clear(tag);
             this.editor.focus();
