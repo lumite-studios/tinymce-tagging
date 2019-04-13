@@ -114,7 +114,7 @@ class Tagging
 
 	insert(item, tag)
 	{
-		return '<span data-mce-mentions-id="' + item[tag.selector] + '">' + item[tag.selector] + '</span>';
+		return '<span data-tagging-id="' + item[tag.selector] + '">' + item[tag.selector] + '</span>';
 	}
 
 	lookup(tag)
