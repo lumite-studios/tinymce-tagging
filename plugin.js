@@ -142,6 +142,11 @@ class Tagging
 			// BACKSPACE
 			case 8:
 				tag.tracking = tag.tracking.slice(0, -1);
+				if(tag.tracking === '')
+				{
+					this.clear(tag);
+					break;
+				}
 				this.lookup(tag);
 				break;
 
