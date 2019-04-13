@@ -26,7 +26,7 @@
 							delimeter: '@',
 							insert: function(item, tag)
 							{
-								return '<span class="test">Test</span>&nbsp;';
+								return '<span id="' + item.id + '">' + item.name + '</span>&nbsp;';
 							},
 							selector: 'name',
 							source: [
