@@ -24,13 +24,11 @@ tinymce.init({
 					return '<span id="' + item.id + '">' + item.name + '</span>&nbsp;';
 				},
 				selector: 'name',
-				source: [
-					{ id: 1, name: 'Claude Harper' },
-					{ id: 1, name: 'Alannah Carter' },
-					{ id: 1, name: 'Felix Schultz' },
-					{ id: 1, name: 'Holli Keenan' },
-					{ id: 1, name: 'Aditi Berry' }
-				],
+				source(query, success)
+				{
+					const users = tagSearchFunction(query)
+					success(users)
+				},
 			},
 		],
 	},
