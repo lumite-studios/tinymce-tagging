@@ -1,8 +1,7 @@
 language: node_js
 node_js:
     - "node"
-script:
-  ./configure && make
+script: 'true'
 branches:
   only:
     - master
