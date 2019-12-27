@@ -17,7 +17,7 @@ tinymce.init({
 		'tag': 'https://crotanite.github.io/tinymce-tagging/plugin.js',
 	},
 	extended_valid_elements: 'span[class|id|data-tagging-id]',
-	tagging: {
+	tagging: [
 		{
 			delimeter: '@',
 			insert: function(item, tag)
@@ -32,7 +32,7 @@ tinymce.init({
 				success(users)
 			},
 		},
-	},
+	],
 })
 ```
 
