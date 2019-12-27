@@ -82,6 +82,19 @@ class Tagging
 	}
 
 	/**
+	 * Clear any existing containers.
+	 *
+	 * @return void
+	 */
+	clearContainers()
+	{
+		let elements = document.getElementsByClassName('tiny-tags');
+	    while(elements.length > 0){
+	        elements[0].parentNode.removeChild(elements[0]);
+	    }
+	}
+
+	/**
 	 * The default insert for a tag.
 	 *
 	 * @param
@@ -259,6 +272,7 @@ class Tagging
 	 */
 	renderContainer()
 	{
+		this.clearContainers()
 		// fetch the editor and set the containing
 		// to relative position
 		const editor = this.editor.getElement()
