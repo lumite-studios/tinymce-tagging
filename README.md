@@ -8,6 +8,8 @@ Based on [https://github.com/StevenDevooght/tinyMCE-mention](https://github.com/
 
 Use as an external plugin when initialising TinyMCE.
 
+### Init
+
 ```
 tinymce.init({
 	selector: "textarea#tagging",
@@ -27,6 +29,7 @@ tinymce.init({
 				source(query, success)
 				{
 					const users = tagSearchFunction(query)
+					// users = [{ name: 'user' }, { name: 'test' }]
 					success(users)
 				},
 			},
@@ -34,3 +37,10 @@ tinymce.init({
 	},
 })
 ```
+
+### Options
+* delimeter: The character used to initialise the tagging.
+* insert: A function that should return a string which will display the tag within the tinymce editor.
+* selector: The object parameter to search for.
+* source: The function that handles searching.
+* title (optional): The title to display within the list. Defaults to the selector.
