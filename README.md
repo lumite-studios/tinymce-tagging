@@ -18,22 +18,20 @@ tinymce.init({
 	},
 	extended_valid_elements: 'span[class|id|data-tagging-id]',
 	tagging: {
-		tags: [
+		{
+			delimeter: '@',
+			insert: function(item, tag)
 			{
-				delimeter: '@',
-				insert: function(item, tag)
-				{
-					return '<span id="' + item.id + '">' + item.name + '</span>&nbsp;';
-				},
-				selector: 'name',
-				source(query, success)
-				{
-					const users = tagSearchFunction(query)
-					// users = [{ name: 'user' }, { name: 'test' }]
-					success(users)
-				},
+				return '<span id="' + item.id + '">' + item.name + '</span>&nbsp;';
 			},
-		],
+			selector: 'name',
+			source(query, success)
+			{
+				const users = tagSearchFunction(query)
+				// users = [{ name: 'user' }, { name: 'test' }]
+				success(users)
+			},
+		},
 	},
 })
 ```
@@ -44,3 +42,5 @@ tinymce.init({
 * selector: The object parameter to search for.
 * source: The function that handles searching.
 * title (optional): The title to display within the list. Defaults to the selector.
+* loadingMessage (optional): String that shows when results are loading.
+* emptyMessage (optional): String that shows if there are no results.
