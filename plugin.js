@@ -12,12 +12,35 @@ class Tagging
 	constructor(editor, options = {})
 	{
 		this.delay = options.delay || 500
+		this.delimeter = options.delimeter
 		this.editor = editor
-		this.id = this.generateID()
 		this.emptyMessage = options.emptyMessage || 'There are no items.'
+		this.id = this.generateID()
+		this.insert = options.insert || this.defaultInsert
+		this.items = []
+		this.limit = options.limit || 10
 		this.loadingMessage = options.loadingMessage || 'Loading...'
+		this.selector = options.selector
+		this.source = options.source
 		this.tags = {}
-		this.setOptions(options.tags)
+		this.title = options.title || options.selector
+		this.tracking = ''
+
+		this.renderDropdown()
+		this.renderContainer()
+		this.bindEvents()
+	}
+
+	/**
+	 * Bind events to the tinymce editor.
+	 *
+	 * @return void
+	 */
+	bindEvents()
+	{
+        this.editor.on('keydown', this.keydownProxy = (event) => { this.onKeydown(event) }, true)
+		this.editor.on('keyup', this.keyupProxy = (event) => { this.onKeyup(event) })
+		document.getElementsByTagName('body')[0].addEventListener('click', this.bodyClickProxy = () => { this.lostFocus() });
 	}
 
 	/**
@@ -65,33 +88,36 @@ class Tagging
 	/**
 	 * Clear the tag.
 	 *
-	 * @param
 	 * @return void
 	 */
-	clear(tag)
+	clean(rollback = false)
 	{
-		// remove the tiny tags container
-		const container = document.getElementById('tiny-tags-'+this.id)
-		if(container !== null)
-		{
-			this.editor.getElement().parentElement.removeChild(container)
-		}
-		
-		// stop tracking
-		tag.tracking = ''
-	}
+		this.unbindEvents()
 
-	/**
-	 * Clear any existing containers.
-	 *
-	 * @return void
-	 */
-	clearContainers()
-	{
-		let elements = document.getElementsByClassName('tiny-tags');
-	    while(elements.length > 0){
-	        elements[0].parentNode.removeChild(elements[0]);
-	    }
+		// clear the dropdown
+		const dropdown = document.getElementById('tiny-tags-'+this.id)
+		if(dropdown !== null)
+		{
+			this.editor.getElement().parentElement.removeChild(dropdown)
+		}
+
+		const container = this.editor.getDoc().getElementById('tiny-tags-search-'+this.id)
+		if(container)
+		{
+			let replacement
+
+			if(rollback)
+			{
+				replacement = document.createTextNode(this.delimeter + this.tracking)
+			} else
+			{
+				replacement = document.createTextNode(this.delimeter)
+			}
+
+			this.editor.dom.replace(replacement, container)
+			this.editor.selection.select(replacement)
+			this.editor.selection.collapse()
+		}
 	}
 
 	/**
@@ -101,9 +127,9 @@ class Tagging
 	 * @param
 	 * @return string
 	 */
-	defaultInsert(item, tag)
+	defaultInsert(item)
 	{
-		return '<span data-tagging-id="' + item[tag.selector] + '">' + item[tag.title] + '</span>';
+		return '<span data-tagging-id="' + item[this.selector] + '">' + item[this.title] + '</span>';
 	}
 
 	/**
@@ -138,6 +164,12 @@ class Tagging
 			result += characters.charAt(Math.floor(Math.random() * charactersLength))
 		}
 		return result
+	}
+
+	getActiveItem()
+	{
+		const container = document.getElementById('tiny-tags-'+this.id)
+		return container.querySelector('li.tiny-tags-item-active')
 	}
 
 	/**
@@ -197,52 +229,57 @@ class Tagging
 	}
 
 	/**
-	 * Lookup the tag.
+	 * Insert the item into the editor.
 	 *
-	 * @param object tag
+	 * @param object item
 	 * @return void
 	 */
-	lookup(tag)
+	insertItem(item)
 	{
+		const container = this.editor.dom.select('span#tiny-tags-search-'+this.id)[0]
+        this.editor.dom.remove(container)
+        this.editor.execCommand('mceInsertContent', false, this.insert(item))
+		//const container = this.editor.getDoc().getElementById('tiny-tags-search-'+this.id)
+	}
+
+	/**
+	 * Lookup the keypress.
+	 *
+	 * @return void
+	 */
+	lookup()
+	{
+		this.tracking = (this.editor.getDoc().getElementById('tiny-tags-search-'+this.id).querySelector('span.tiny-tags-text').innerText).replace('\ufeff', '')
+
 		// set the loading message
 		this.displayContainerMessage(this.loadingMessage)
-
-		// remove the delimeter from the tag in order to search
-		const query = tag.tracking.replace(tag.delimeter, '')
 
 		clearTimeout(this.searching)
 		this.searching = setTimeout(() =>
 		{
-			tag.source(query, this.render.bind(this, tag))
+			this.source(this.tracking, this.render.bind(this))
 		}, this.delay)
 	}
 
 	/**
-	 * Do something as the tag is typed out.
+	 * Lost focus on tinymce, so clean.
 	 *
-	 * @param object tag
-	 * @param object e
-	 * @return
+	 * @return void
 	 */
-	onKeyup(tag, e)
+	lostFocus()
+	{
+		this.clean(true)
+	}
+
+	onKeydown(e)
 	{
 		switch(e.keyCode)
 		{
-			// BACKSPACE
-			case 8:
-				tag.tracking = tag.tracking.slice(0, -1)
-				if(tag.tracking === '')
-				{
-					this.clear(tag)
-					break
-				}
-				this.lookup(tag)
-				break
-
 			// ENTER
 			case 13:
+			// ESC
+			case 27:
 				e.preventDefault()
-				this.selectActiveItem(tag)
 				break
 
 			// UP ARROW
@@ -256,38 +293,68 @@ class Tagging
 				e.preventDefault()
 				this.highlightNextItem()
 				break
-
-			// ANY OTHER
-			default:
-				tag.tracking = tag.tracking + String.fromCharCode(e.keyCode)
-				this.lookup(tag)
-				break
 		}
+		e.stopPropagation()
 	}
 
 	/**
-	 * Render the "tiny-tags" container.
+	 * Do something as the tag is typed out.
 	 *
-	 * @return void
+	 * @param object e
+	 * @return
 	 */
-	renderContainer()
+	onKeyup(e)
 	{
-		this.clearContainers()
-		// fetch the editor and set the containing
-		// to relative position
-		const editor = this.editor.getElement()
-		editor.parentElement.style.position = 'relative'
+		switch(e.keyCode)
+		{
+			// SHIFT
+			case 16:
+			// CTRL
+			case 17:
+			// ALT
+			case 18:
+			// UP ARROW
+			case 38:
+			// DOWN ARROW
+			case 40:
+				e.preventDefault()
+				break
 
-		// build the container
-		const position = this.calculatePosition()
-		let container = document.createElement('div')
-		container.setAttribute('class', 'tiny-tags')
-		container.setAttribute('id', 'tiny-tags-'+this.id)
-		container.style.top = position.top + 'px'
-		container.style.left = position.left + 'px'
+			// BACKSPACE
+			case 8:
+				if(this.tracking === '')
+				{
+					this.clean()
+				} else
+				{
+					this.lookup()
+				}
+				break
 
-		// append the container to the editor's parent
-		editor.parentElement.appendChild(container)
+			// TAB
+			case 9:
+			// ENTER
+			case 13:
+				const active = this.getActiveItem()
+				if(active)
+				{
+					this.selectActiveItem()
+					this.clean()
+				} else
+				{
+					this.clean(true)
+				}
+				break
+
+			// ESC
+			case 27:
+				this.clean(true)
+				break;
+
+			// ANY OTHER
+			default:
+				this.lookup()
+		}
 	}
 
 	/**
@@ -297,7 +364,7 @@ class Tagging
 	 * @param array items
 	 * @return void
 	 */
-	render(tag, items)
+	render(items)
 	{
 		// fetch the container
 		const container = document.getElementById('tiny-tags-'+this.id)
@@ -308,17 +375,20 @@ class Tagging
 			// build the dropdown
 			let ul = document.createElement('ul')
 			ul.setAttribute('class', 'tiny-tags-list')
-			for(let i = 0; i < items.length; i++)
+			for(let i = 0; i < this.limit; i++)
 			{
-				const li = document.createElement('li')
-				li.setAttribute('class', 'tiny-tags-item')
-				li.setAttribute('data-tagging-id', items[i][tag.selector])
-				li.innerHTML = items[i][tag.title]
-				li.addEventListener('click', () =>
+				if(items[i])
 				{
-					this.insertItem(items[i], tag)
-				})
-				ul.append(li)
+					const li = document.createElement('li')
+					li.setAttribute('class', 'tiny-tags-item')
+					li.setAttribute('data-tagging-id', items[i][this.selector])
+					li.innerHTML = items[i][this.title]
+					li.addEventListener('click', () =>
+					{
+						this.insertItem(items[i])
+					})
+					ul.append(li)
+				}
 			}
 			container.innerHTML = ''
 			container.appendChild(ul)
@@ -327,8 +397,54 @@ class Tagging
 			this.displayContainerMessage(this.emptyMessage)
 		}
 
-		tag.items = items
+		this.items = items
 	}
+
+	/**
+	 * Render the container within the editor.
+	 *
+	 * @return void
+	 */
+	renderContainer()
+	{
+		// build the container
+		let rawContainer = '<span class="tiny-tags-search" id="tiny-tags-search-'+this.id+'">'
+		rawContainer += '<span class="tiny-tags-delimeter">'
+		rawContainer += this.delimeter
+		rawContainer += '</span>'
+		rawContainer += '<span class="tiny-tags-text">'
+		rawContainer += '<span class="dummy">\ufeff</span>'
+		rawContainer += '</span>'
+
+		this.editor.execCommand('mceInsertContent', false, rawContainer)
+        this.editor.focus()
+        this.editor.selection.select(this.editor.selection.dom.select('span.tiny-tags-text span')[0])
+        this.editor.selection.collapse(0)
+    }
+
+    /**
+     * Render the dropdown.
+     *
+     * @return void
+     */
+    renderDropdown()
+    {
+    	// fetch the editor and set the containing
+		// to relative position
+    	const editor = this.editor.getElement()
+		editor.parentElement.style.position = 'relative'
+
+		// build the container
+		const position = this.calculatePosition()
+		let container = document.createElement('div')
+		container.setAttribute('class', 'tiny-tags-dropdown')
+		container.setAttribute('id', 'tiny-tags-'+this.id)
+		container.style.top = position.top + 'px'
+		container.style.left = position.left + 'px'
+
+		// append the container to the editor's parent
+		editor.parentElement.appendChild(container)
+    }
 
 	/**
 	 * Select the currently active item.
@@ -336,128 +452,68 @@ class Tagging
 	 * @param object tag
 	 * @return
 	 */
-	selectActiveItem(tag)
+	selectActiveItem()
 	{
 		// try to fetch the currently active list item
-		const container = document.getElementById('tiny-tags-'+this.id)
-		const active = container.querySelector('li.tiny-tags-item-active')
+		const active = this.getActiveItem()
 
 		if(active)
 		{
 			// fetch the tag from the tag list
-			const item = tag.items[tag.items.findIndex((item) => 
+			const item = this.items[this.items.findIndex((item) => 
 				{
-					return item[tag.selector] === active.getAttribute('data-tagging-id')
+					return item[this.selector] === active.getAttribute('data-tagging-id')
 				}
 			)]
 
-			this.insertItem(item, tag)
+			this.insertItem(item)
 		}
 	}
 
 	/**
-	 * Insert the item into the editor.
+	 * Unbind the events.
 	 *
-	 * @param object item
-	 * @param object tag
 	 * @return void
 	 */
-	insertItem(item, tag)
-	{
-		let content = this.editor.getContent()
-		content = content.replace(tag.tracking, tag.insert(item, tag))
-		this.editor.setContent(content)
-		this.clear(tag)
-		this.editor.focus()
-		this.editor.selection.select(this.editor.getBody())
-		this.editor.selection.collapse(false)
-	}
-
-	/**
-	 * Set the plugin options.
-	 * 
-	 * @param object options
-	 * @return void
-	 */
-	setOptions(options)
-	{
-		for(const item of Object.values(options))
-		{
-			this.tags[item.delimeter] = {
-				delimeter: item.delimeter,
-				insert: item.insert || this.defaultInsert,
-				items: [],
-				selector: item.selector,
-				title: item.title || item.selector,
-				source: item.source,
-				tracking: '',
-			};
-		}
-	}
-
-	/**
-	 * Track the tag as its typed.
-	 *
-	 * @param object tag
-	 * @param object e
-	 * @return string
-	 */
-	trackTag(tag, e)
-	{
-		// check if we need to do something
-		// with the key press
-		this.onKeyup(tag, e)
-
-		// return empty or the tag
-		if(tag.tracking === '')
-		{
-			return null
-		}
-		return tag
-	}
+    unbindEvents()
+    {
+        this.editor.off('keydown', this.keydownProxy)
+		this.editor.off('keyup', this.keyupProxy)
+		document.getElementsByTagName('body')[0].removeEventListener('click', this.bodyClickProxy);
+    }
 }
 
 tinymce.create('tinymce.plugins.tag',
 {
-	init: function(editor)
+	init: (editor) =>
 	{
-		// initialise our Tagging class with
-		// our editor and any options
-		const tagging = new Tagging(editor, editor.getParam('tagging'))
-		let track = null
+		let tagging
 
-		editor.on('keypress', function(e)
+		function prevCharIsSpace()
 		{
-			// check if we are already tracking a tag
-			if(track === null)
-			{
-				// we are not tracking a tag, so lets see
-				// if the entered character is one of the
-				// available delimeters, and if so, start
-				// tracking the new tag
-				if(typeof tagging.tags[String.fromCharCode(e.keyCode)] !== 'undefined')
-				{
-					tagging.renderContainer()
-					const tag = tagging.tags[String.fromCharCode(e.keyCode)]
-					track = tagging.trackTag(tag, e)
-				}
-			} else
-			{
-				track = tagging.trackTag(track, e);
-			}
-		});
+            const start = editor.selection.getRng(true).startOffset
+           	const text = editor.selection.getRng(true).startContainer.data || ''
+            const character = text.substr(start > 0 ? start - 1 : 0, 1).replace(/\s/g, '')
 
-		// needed for tracking backspace, arrow presses
-		editor.on('keydown', function(e)
+            return character == '' ? true : false
+        }
+
+		editor.on('keypress', (e) =>
 		{
-			if(track !== null)
+			const tracking = editor.getParam('tagging').filter((tag) =>
 			{
-				if(e.keyCode === 8 || e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13)
-				{
-					track = tagging.trackTag(track, e);
-				}
+				return tag.delimeter === String.fromCharCode(e.keyCode)
+			})[0]
+
+			if(typeof tracking !== 'undefined' && prevCharIsSpace())
+			{
+				e.preventDefault()
+				tagging = new Tagging(
+					editor,
+					tracking,
+				)
 			}
-		});
+		})
 	}
 });
 
