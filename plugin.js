@@ -1,16 +1,32 @@
 'use strict';
 
 class Tagging
-{
+{	
+	/**
+	 * Build the class data.
+	 *
+	 * @param
+	 * @param object options
+	 * @return void
+	 */
 	constructor(editor, options = {})
 	{
-		this.delay = options.delay || 500;
-		this.editor = editor;
-		this.tags = {};
-		this.set_tags(options.tags);
+		this.delay = options.delay || 500
+		this.editor = editor
+		this.id = this.generateID()
+		this.emptyMessage = options.emptyMessage || 'There are no items.'
+		this.loadingMessage = options.loadingMessage || 'Loading...'
+		this.tags = {}
+		this.setOptions(options.tags)
 	}
 
-	calculate_position()
+	/**
+	 * Calculate what position to show the
+	 * tiny tags container.
+	 *
+	 * @return object
+	 */
+	calculatePosition()
 	{
 		var top = 0;
 		var left = 0;
@@ -46,208 +62,344 @@ class Tagging
 		return { top: top, left: left };
 	}
 
+	/**
+	 * Clear the tag.
+	 *
+	 * @param
+	 * @return void
+	 */
 	clear(tag)
 	{
-		this.editor.getElement().parentElement.removeChild(this.dropdown);
-		delete this.dropdown;
-		tag.tracking = '';
-	}
-
-	highlighted_list_item(tag)
-	{
-		var current_active = this.dropdown.querySelector('li.active');
-		if(current_active)
+		// remove the tiny tags container
+		const container = document.getElementById('tiny-tags-'+this.id)
+		if(container !== null)
 		{
-			var item = tag.items[tag.items.findIndex(function(item) { return item[tag.selector] === current_active.innerText })];
-			var content = this.editor.getContent();
-			content = content.replace(tag.tracking, tag.insert(item, tag));
-			this.editor.setContent(content);
-			this.clear(tag);
-            this.editor.focus();
-            this.editor.selection.select(this.editor.getBody());
-            this.editor.selection.collapse(false);
+			this.editor.getElement().parentElement.removeChild(container)
 		}
+		
+		// stop tracking
+		tag.tracking = ''
 	}
 
-	highlight_next_list_item()
+	/**
+	 * The default insert for a tag.
+	 *
+	 * @param
+	 * @param
+	 * @return string
+	 */
+	defaultInsert(item, tag)
 	{
-		var current_active = this.dropdown.querySelector('li.active');
-		if(current_active !== null)
+		return '<span data-tagging-id="' + item[tag.selector] + '">' + item[tag.title] + '</span>';
+	}
+
+	/**
+	 * Display a message within the container.
+	 *
+	 * @param string message
+	 * @return void
+	 */
+	displayContainerMessage(text)
+	{
+		const container = document.getElementById('tiny-tags-'+this.id)
+		container.innerHTML = ''
+		const message = document.createElement('div')
+		message.setAttribute('class', 'tiny-tags-message')
+		message.innerHTML = text
+		container.appendChild(message)
+	}
+
+	/**
+	 * Generate a random id.
+	 *
+	 * @param integer length
+	 * @return string
+	 */
+	generateID(length = 10)
+	{
+		let result = ''
+		const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+		const charactersLength = characters.length
+		for(let i = 0; i < length; i++)
 		{
-			var index = ([...this.dropdown.children].indexOf(current_active)) + 1;
-			var child = this.dropdown.childNodes[index];
-			if(child)
-			{
-				current_active.classList.remove('active');
-				this.dropdown.childNodes[index].classList.add('active');
-			}
+			result += characters.charAt(Math.floor(Math.random() * charactersLength))
+		}
+		return result
+	}
+
+	/**
+	 * Highlight the next item in the dropdown.
+	 *
+	 * @return void
+	 */
+	highlightNextItem()
+	{
+		const container = document.getElementById('tiny-tags-'+this.id)
+
+		// try to fetch the currently active list item
+		const active = container.querySelector('li.tiny-tags-item-active')
+		let child
+
+		if(active === null)
+		{
+			child = container.querySelector('li.tiny-tags-item')
 		} else
 		{
-			var child = this.dropdown.childNodes[0];
-			if(child)
-			{
-				this.dropdown.childNodes[0].classList.add('active');
-			}
+			active.setAttribute('class', 'tiny-tags-item')
+			child = active.nextSibling
+		}
+
+		if(child !== null)
+		{
+			child.setAttribute('class', 'tiny-tags-item tiny-tags-item-active')
 		}
 	}
 
-	highlight_previous_list_item()
+	/**
+	 * Highlight the previous item in the dropdown.
+	 *
+	 * @return void
+	 */
+	highlightPreviousItem()
 	{
-		var current_active = this.dropdown.querySelector('li.active');
-		if(current_active !== null)
+		const container = document.getElementById('tiny-tags-'+this.id)
+
+		// try to fetch the currently active list item
+		const active = container.querySelector('li.tiny-tags-item-active')
+		let child
+
+		if(active === null)
 		{
-			var index = ([...this.dropdown.children].indexOf(current_active)) - 1;
-			var child = this.dropdown.childNodes[index];
-			if(child)
-			{
-				current_active.classList.remove('active');
-				this.dropdown.childNodes[index].classList.add('active');
-			}
+			child = container.querySelector('li.tiny-tags-item')
 		} else
 		{
-			var child = this.dropdown.childNodes[0];
-			if(child)
-			{
-				this.dropdown.childNodes[0].classList.add('active');
-			}
+			active.setAttribute('class', 'tiny-tags-item')
+			child = active.previousSibling
+		}
+
+		if(child !== null)
+		{
+			child.setAttribute('class', 'tiny-tags-item tiny-tags-item-active')
 		}
 	}
 
-	insert(item, tag)
-	{
-		return '<span data-tagging-id="' + item[tag.selector] + '">' + item[tag.selector] + '</span>';
-	}
-
+	/**
+	 * Lookup the tag.
+	 *
+	 * @param object tag
+	 * @return void
+	 */
 	lookup(tag)
 	{
-		var _self = this;
-		if(typeof this.dropdown === 'undefined')
-		{
-			this.show();
-		}
+		// set the loading message
+		this.displayContainerMessage(this.loadingMessage)
 
-		var query = tag.tracking.replace(tag.delimeter, '');
+		// remove the delimeter from the tag in order to search
+		const query = tag.tracking.replace(tag.delimeter, '')
 
-		clearTimeout(this.searching);
-		this.searching = setTimeout(function()
+		clearTimeout(this.searching)
+		this.searching = setTimeout(() =>
 		{
-			tag.source instanceof Function ? tag.source(query, _self.search.bind(_self, tag)) : _self.search(tag, tag.source);
-		}, this.delay);
+			tag.source(query, this.render.bind(this, tag))
+		}, this.delay)
 	}
 
-	on_keyup(tag, e)
+	/**
+	 * Do something as the tag is typed out.
+	 *
+	 * @param object tag
+	 * @param object e
+	 * @return
+	 */
+	onKeyup(tag, e)
 	{
 		switch(e.keyCode)
 		{
 			// BACKSPACE
 			case 8:
-				tag.tracking = tag.tracking.slice(0, -1);
+				tag.tracking = tag.tracking.slice(0, -1)
 				if(tag.tracking === '')
 				{
-					this.clear(tag);
-					break;
+					this.clear(tag)
+					break
 				}
-				this.lookup(tag);
-				break;
+				this.lookup(tag)
+				break
 
 			// ENTER
 			case 13:
-				e.preventDefault();
-				if(this.dropdown)
-				{
-					this.highlighted_list_item(tag);
-				}
-				break;
+				e.preventDefault()
+				this.selectActiveItem(tag)
+				break
 
 			// UP ARROW
 			case 38:
-				e.preventDefault();
-				if(this.dropdown)
-				{
-					this.highlight_previous_list_item();
-				}
-				break;
+				e.preventDefault()
+				this.highlightPreviousItem()
+				break
 
 			// DOWN ARROW
 			case 40:
-				e.preventDefault();
-				if(this.dropdown)
-				{
-					this.highlight_next_list_item();
-				}
-				break;
+				e.preventDefault()
+				this.highlightNextItem()
+				break
 
 			// ANY OTHER
 			default:
-				tag.tracking = tag.tracking + String.fromCharCode(e.keyCode);
-				this.lookup(tag);
-				break;
+				tag.tracking = tag.tracking + String.fromCharCode(e.keyCode)
+				this.lookup(tag)
+				break
 		}
 	}
 
-	render(item, selector)
+	/**
+	 * Render the "tiny-tags" container.
+	 *
+	 * @return void
+	 */
+	renderContainer()
 	{
-		var li = document.createElement('li');
-		li.setAttribute('class', 'item');
-		li.innerHTML = item[selector];
-		return li;
+		// fetch the editor and set the containing
+		// to relative position
+		const editor = this.editor.getElement()
+		editor.parentElement.style.position = 'relative'
+
+		// build the container
+		const position = this.calculatePosition()
+		let container = document.createElement('div')
+		container.setAttribute('class', 'tiny-tags')
+		container.setAttribute('id', 'tiny-tags-'+this.id)
+		container.style.top = position.top + 'px'
+		container.style.left = position.left + 'px'
+
+		// append the container to the editor's parent
+		editor.parentElement.appendChild(container)
 	}
 
-	render_dropdown()
+	/**
+	 * Render the dropdown of the items.
+	 *
+	 * @param object tag
+	 * @param array items
+	 * @return void
+	 */
+	render(tag, items)
 	{
-		var position = this.calculate_position();
-		var ul = document.createElement('ul');
-		ul.setAttribute('class', 'tiny-tags');
-		ul.style.top = position.top;
-		ul.style.left = position.left;
-		return ul;
-	}
+		// fetch the container
+		const container = document.getElementById('tiny-tags-'+this.id)
 
-	search(tag, items)
-	{
-		if(this.dropdown)
+		// are there any items?
+		if(items.length !== 0)
 		{
-			this.dropdown.innerHTML = '';
-			for(var i = 0; i < items.length; i++)
+			// build the dropdown
+			let ul = document.createElement('ul')
+			ul.setAttribute('class', 'tiny-tags-list')
+			for(let i = 0; i < items.length; i++)
 			{
-				var elem = this.render(items[i], tag.selector);
-				this.dropdown.append(elem);
+				const li = document.createElement('li')
+				li.setAttribute('class', 'tiny-tags-item')
+				li.setAttribute('data-tagging-id', items[i][tag.selector])
+				li.innerHTML = items[i][tag.title]
+				li.addEventListener('click', () =>
+				{
+					this.insertItem(items[i], tag)
+				})
+				ul.append(li)
 			}
+			container.innerHTML = ''
+			container.appendChild(ul)
+		} else
+		{
+			this.displayContainerMessage(this.emptyMessage)
 		}
-		tag.items = items;
+
+		tag.items = items
 	}
 
-	set_tags(options)
+	/**
+	 * Select the currently active item.
+	 *
+	 * @param object tag
+	 * @return
+	 */
+	selectActiveItem(tag)
+	{
+		// try to fetch the currently active list item
+		const container = document.getElementById('tiny-tags-'+this.id)
+		const active = container.querySelector('li.tiny-tags-item-active')
+
+		if(active)
+		{
+			// fetch the tag from the tag list
+			const item = tag.items[tag.items.findIndex((item) => 
+				{
+					return item[tag.selector] === active.getAttribute('data-tagging-id')
+				}
+			)]
+
+			this.insertItem(item, tag)
+		}
+	}
+
+	/**
+	 * Insert the item into the editor.
+	 *
+	 * @param object item
+	 * @param object tag
+	 * @return void
+	 */
+	insertItem(item, tag)
+	{
+		let content = this.editor.getContent()
+		content = content.replace(tag.tracking, tag.insert(item, tag))
+		this.editor.setContent(content)
+		this.clear(tag)
+		this.editor.focus()
+		this.editor.selection.select(this.editor.getBody())
+		this.editor.selection.collapse(false)
+	}
+
+	/**
+	 * Set the plugin options.
+	 * 
+	 * @param object options
+	 * @return void
+	 */
+	setOptions(options)
 	{
 		for(const item of Object.values(options))
 		{
 			this.tags[item.delimeter] = {
 				delimeter: item.delimeter,
-				insert: item.insert || this.insert,
+				insert: item.insert || this.defaultInsert,
 				items: [],
 				selector: item.selector,
+				title: item.title || item.selector,
 				source: item.source,
 				tracking: '',
 			};
 		}
 	}
 
-	show()
+	/**
+	 * Track the tag as its typed.
+	 *
+	 * @param object tag
+	 * @param object e
+	 * @return string
+	 */
+	trackTag(tag, e)
 	{
-		this.dropdown = this.render_dropdown();
-		this.editor.getElement().parentElement.appendChild(this.dropdown);
-	}
+		// check if we need to do something
+		// with the key press
+		this.onKeyup(tag, e)
 
-	track_tag(tag, e)
-	{
-		this.on_keyup(tag, e);
-
+		// return empty or the tag
 		if(tag.tracking === '')
 		{
-			return null;
+			return null
 		}
-
-		return tag;
+		return tag
 	}
 }
 
@@ -257,8 +409,8 @@ tinymce.create('tinymce.plugins.tag',
 	{
 		// initialise our Tagging class with
 		// our editor and any options
-		var tagging = new Tagging(editor, editor.getParam('tagging'));
-		var track = null;
+		const tagging = new Tagging(editor, editor.getParam('tagging'))
+		let track = null
 
 		editor.on('keypress', function(e)
 		{
@@ -271,12 +423,13 @@ tinymce.create('tinymce.plugins.tag',
 				// tracking the new tag
 				if(typeof tagging.tags[String.fromCharCode(e.keyCode)] !== 'undefined')
 				{
-					var tag = tagging.tags[String.fromCharCode(e.keyCode)];
-					track = tagging.track_tag(tag, e);
+					tagging.renderContainer()
+					const tag = tagging.tags[String.fromCharCode(e.keyCode)]
+					track = tagging.trackTag(tag, e)
 				}
 			} else
 			{
-				track = tagging.track_tag(track, e);
+				track = tagging.trackTag(track, e);
 			}
 		});
 
@@ -287,7 +440,7 @@ tinymce.create('tinymce.plugins.tag',
 			{
 				if(e.keyCode === 8 || e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13)
 				{
-					track = tagging.track_tag(track, e);
+					track = tagging.trackTag(track, e);
 				}
 			}
 		});
