@@ -20,7 +20,7 @@ tinymce.init({
 	tagging: [
 		{
 			delimeter: '@',
-			insert: function(item, tag)
+			insert(item)
 			{
 				return '<span id="' + item.id + '">' + item.name + '</span>&nbsp;';
 			},
