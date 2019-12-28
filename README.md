@@ -42,5 +42,5 @@ tinymce.init({
 * selector: The object parameter to search for.
 * source: The function that handles searching.
 * title (optional): The title to display within the list. Defaults to the selector.
-* loadingMessage (optional): String that shows when results are loading.
-* emptyMessage (optional): String that shows if there are no results.
+* loadingMessage (optional): String that shows when results are loading. Defaults to 'Loading...'.
+* emptyMessage (optional): String that shows if there are no results. Defaults to 'There are no results.'.

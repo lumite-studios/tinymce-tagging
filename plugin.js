@@ -14,7 +14,7 @@ class Tagging
 		this.delay = options.delay || 500
 		this.delimeter = options.delimeter
 		this.editor = editor
-		this.emptyMessage = options.emptyMessage || 'There are no items.'
+		this.emptyMessage = options.emptyMessage || 'There are no results.'
 		this.id = this.generateID()
 		this.insert = options.insert || this.defaultInsert
 		this.items = []
