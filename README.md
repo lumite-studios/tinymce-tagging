@@ -28,7 +28,7 @@ tinymce.init({
 			source(query, success)
 			{
 				const users = tagSearchFunction(query)
-				// users = [{ name: 'user' }, { name: 'test' }]
+				// users = [{ id: 1, name: 'user' }, { id: 2, name: 'test' }]
 				success(users)
 			},
 		},
