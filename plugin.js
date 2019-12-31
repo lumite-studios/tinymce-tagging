@@ -56,13 +56,13 @@ class Tagging
 
 		// add the position of the entire tinymce
 		// element to the top and left
-		top = top + this.editor.getElement().offsetTop;
-		left = left + this.editor.getElement().offsetLeft;
+		//top = top + this.editor.getElement().offsetTop;
+		//left = left + this.editor.getElement().offsetLeft;
 
 		// also add the actual area of the inner
 		// tinymce area to our position
-		top = top + this.editor.getContentAreaContainer().offsetTop;
-		left = left + this.editor.getContentAreaContainer().offsetLeft;
+		//top = top + this.editor.getContentAreaContainer().offsetTop;
+		//left = left + this.editor.getContentAreaContainer().offsetLeft;
 
 		// also use the current node to offset
 		// the position as well
@@ -98,7 +98,7 @@ class Tagging
 		const dropdown = document.getElementById('tiny-tags-'+this.id)
 		if(dropdown !== null)
 		{
-			this.editor.getElement().parentElement.removeChild(dropdown)
+			this.editor.iframeElement.parentElement.removeChild(dropdown)
 		}
 
 		const container = this.editor.getDoc().getElementById('tiny-tags-search-'+this.id)
@@ -166,6 +166,11 @@ class Tagging
 		return result
 	}
 
+	/**
+	 * Get the current active item.
+	 *
+	 * @return
+	 */
 	getActiveItem()
 	{
 		const container = document.getElementById('tiny-tags-'+this.id)
@@ -271,6 +276,12 @@ class Tagging
 		this.clean(true)
 	}
 
+	/**
+	 * Do something as the tag is typed out.
+	 *
+	 * @param object e
+	 * @return
+	 */
 	onKeydown(e)
 	{
 		switch(e.keyCode)
@@ -431,8 +442,8 @@ class Tagging
     {
     	// fetch the editor and set the containing
 		// to relative position
-    	const editor = this.editor.getElement()
-		editor.parentElement.style.position = 'relative'
+    	const editor = this.editor.iframeElement
+    	editor.parentElement.style.position = 'relative'
 
 		// build the container
 		const position = this.calculatePosition()
