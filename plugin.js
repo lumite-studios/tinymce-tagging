@@ -38,7 +38,7 @@ class Tagging
 	 */
 	bindEvents()
 	{
-        this.editor.on('keydown', this.keydownProxy = (event) => { this.onKeydown(event) }, true)
+		this.editor.on('keydown', this.keydownProxy = (event) => { this.onKeydown(event) }, true)
 		this.editor.on('keyup', this.keyupProxy = (event) => { this.onKeyup(event) })
 		document.getElementsByTagName('body')[0].addEventListener('click', this.bodyClickProxy = () => { this.lostFocus() });
 	}
@@ -242,8 +242,8 @@ class Tagging
 	insertItem(item)
 	{
 		const container = this.editor.dom.select('span#tiny-tags-search-'+this.id)[0]
-        this.editor.dom.remove(container)
-        this.editor.execCommand('mceInsertContent', false, this.insert(item))
+		this.editor.dom.remove(container)
+		this.editor.execCommand('mceInsertContent', false, this.insert(item))
 		//const container = this.editor.getDoc().getElementById('tiny-tags-search-'+this.id)
 	}
 
@@ -428,22 +428,22 @@ class Tagging
 		rawContainer += '</span>'
 
 		this.editor.execCommand('mceInsertContent', false, rawContainer)
-        this.editor.focus()
-        this.editor.selection.select(this.editor.selection.dom.select('span.tiny-tags-text span')[0])
-        this.editor.selection.collapse(0)
-    }
+		this.editor.focus()
+		this.editor.selection.select(this.editor.selection.dom.select('span.tiny-tags-text span')[0])
+		this.editor.selection.collapse(0)
+	}
 
-    /**
-     * Render the dropdown.
-     *
-     * @return void
-     */
-    renderDropdown()
-    {
-    	// fetch the editor and set the containing
+	/**
+	 * Render the dropdown.
+	 *
+	 * @return void
+	 */
+	renderDropdown()
+	{
+		// fetch the editor and set the containing
 		// to relative position
-    	const editor = this.editor.iframeElement
-    	editor.parentElement.style.position = 'relative'
+		const editor = this.editor.iframeElement
+		editor.parentElement.style.position = 'relative'
 
 		// build the container
 		const position = this.calculatePosition()
@@ -455,7 +455,7 @@ class Tagging
 
 		// append the container to the editor's parent
 		editor.parentElement.appendChild(container)
-    }
+	}
 
 	/**
 	 * Select the currently active item.
@@ -486,12 +486,12 @@ class Tagging
 	 *
 	 * @return void
 	 */
-    unbindEvents()
-    {
-        this.editor.off('keydown', this.keydownProxy)
+	unbindEvents()
+	{
+		this.editor.off('keydown', this.keydownProxy)
 		this.editor.off('keyup', this.keyupProxy)
 		document.getElementsByTagName('body')[0].removeEventListener('click', this.bodyClickProxy);
-    }
+	}
 }
 
 tinymce.create('tinymce.plugins.tag',
@@ -502,12 +502,12 @@ tinymce.create('tinymce.plugins.tag',
 
 		function prevCharIsSpace()
 		{
-            const start = editor.selection.getRng(true).startOffset
-           	const text = editor.selection.getRng(true).startContainer.data || ''
-            const character = text.substr(start > 0 ? start - 1 : 0, 1).replace(/\s/g, '')
+			const start = editor.selection.getRng(true).startOffset
+			const text = editor.selection.getRng(true).startContainer.data || ''
+			const character = text.substr(start > 0 ? start - 1 : 0, 1).replace(/\s/g, '')
 
-            return character == '' ? true : false
-        }
+			return character == '' ? true : false
+		}
 
 		editor.on('keypress', (e) =>
 		{

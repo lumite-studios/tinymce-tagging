@@ -6,7 +6,7 @@ Based on [https://github.com/StevenDevooght/tinyMCE-mention](https://github.com/
 
 ## Usage
 
-Use as an external plugin when initialising TinyMCE.
+Use as an external plugin when initialising TinyMCE. Instead of adding the styles as content within Tinymce, simply add them to your website's stylesheet.
 
 ### Init
 
@@ -14,7 +14,7 @@ Use as an external plugin when initialising TinyMCE.
 tinymce.init({
 	selector: "textarea#tagging",
 	external_plugins: {
-		'tag': 'https://crotanite.github.io/tinymce-tagging/plugin.js',
+		tag: 'https://lumite-studios.github.io/tinymce-tagging/plugin.js',
 	},
 	extended_valid_elements: 'span[class|id|data-tagging-id]',
 	tagging: [

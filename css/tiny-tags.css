@@ -1,5 +1,6 @@
-.tiny-tags {
+.tox .tiny-tags-dropdown {
 	background-color: white;
+	border: 1px solid #e2e8f0;
 	border-radius: 5px;
 	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 	color: black;
@@ -10,34 +11,50 @@
 	z-index: 1000;
 }
 
-.tiny-tags:before {
-	border-bottom: 7.5px solid #ffffff;
-	border-left: 7.5px solid transparent;
-	border-right: 7.5px solid transparent;
-	content: '';
-	display: inline-block;
+.tox .tiny-tags-dropdown:before,
+.tox .tiny-tags-dropdown:after {
+	bottom: 101%;
+	left: 15px;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
 	position: absolute;
-	top: -7.5px;
-	left: 7.5px;
+	pointer-events: none;
 }
 
-.tiny-tags-message {
-	padding: 10px 5px;
-	text-align: center;
+.tox .tiny-tags-dropdown:after {
+	border-color: rgba(255, 255, 255, 0);
+	border-bottom-color: #ffffff;
+	border-width: 7.5px;
+	margin-left: -7.5px;
 }
 
-.tiny-tags-list {
+.tox .tiny-tags-dropdown:before {
+	border-color: rgba(204, 204, 204, 0);
+	border-bottom-color: #cccccc;
+	border-width: 8.5px;
+	margin-left: -8.5px;
+}
+
+.tox .tiny-tags-dropdown .tiny-tags-list {
 	border-radius: 5px;
 	overflow: hidden;
 }
 
-.tiny-tags-item {
+.tox .tiny-tags-dropdown .tiny-tags-list .tiny-tags-item,
+.tox .tiny-tags-dropdown .tiny-tags-message {
 	padding: 10px 5px;
 	width: 100%;
 }
 
-.tiny-tags-item-active,
-.tiny-tags-item:hover {
+.tox .tiny-tags-dropdown .tiny-tags-message {
+	color: #4a5568;
+	text-align: center;
+}
+
+.tox .tiny-tags-dropdown .tiny-tags-list .tiny-tags-item-active,
+.tox .tiny-tags-dropdown .tiny-tags-list .tiny-tags-item:hover {
 	background-color: #eee;
 	cursor: pointer;
 }
