@@ -392,8 +392,15 @@ class Tagging
 				{
 					const li = document.createElement('li')
 					li.setAttribute('class', 'tiny-tags-item')
-					li.setAttribute('data-tagging-id', items[i][this.selector])
-					li.innerHTML = items[i][this.title]
+					if(this.selector !== null)
+					{
+						li.setAttribute('data-tagging-id', items[i][this.selector])
+						li.innerHTML = items[i][this.title]
+					} else
+					{
+						li.setAttribute('data-tagging-id', items[i])
+						li.innerHTML = items[i]
+					}
 					li.addEventListener('click', () =>
 					{
 						this.insertItem(items[i])
